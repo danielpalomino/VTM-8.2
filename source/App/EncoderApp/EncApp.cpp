@@ -46,6 +46,10 @@
 #include "EncoderLib/AnnexBwrite.h"
 #include "EncoderLib/EncLibCommon.h"
 
+//DANIEL BEGIN
+#include "CommonLib/approx.h"
+//DANIEL END
+
 using namespace std;
 
 //! \ingroup EncoderApp
@@ -1019,6 +1023,26 @@ bool EncApp::encode()
   const InputColourSpaceConversion snrCSC = ( !m_snrInternalColourSpace ) ? m_inputColourSpaceConvert : IPCOLOURSPACE_UNCHANGED;
   bool keepDoing = false;
 
+  //DANIEL BEGIN
+  Pel *beginYNeighborBuffer, *endYNeighborBuffer;
+  Pel *beginCbNeighborBuffer, *endCbNeighborBuffer;
+  Pel *beginCrNeighborBuffer, *endCrNeighborBuffer;
+  
+  int bufferSize = (MAX_CU_SIZE * 2 + 1 + MAX_REF_LINE_IDX) * 2 - 1;
+  
+  beginYNeighborBuffer = m_cEncLib.getIntraSearch()->getPredictorPtr(COMPONENT_Y);
+  endYNeighborBuffer = beginYNeighborBuffer + bufferSize;
+  beginCbNeighborBuffer = m_cEncLib.getIntraSearch()->getPredictorPtr(COMPONENT_Cb);
+  endCbNeighborBuffer = beginCbNeighborBuffer + bufferSize;
+  beginCrNeighborBuffer = m_cEncLib.getIntraSearch()->getPredictorPtr(COMPONENT_Cr);
+  endCrNeighborBuffer = beginCrNeighborBuffer + bufferSize;
+  
+  set_read_ber(0.0);
+  set_write_ber(0.0);
+  add_approx((unsigned long long)beginYNeighborBuffer, (unsigned long long)endYNeighborBuffer);
+  add_approx((unsigned long long)beginCbNeighborBuffer, (unsigned long long)endCbNeighborBuffer);
+  add_approx((unsigned long long)beginCrNeighborBuffer, (unsigned long long)endCrNeighborBuffer);  
+  //DANIEL END
   // call encoding function for one frame
   if( m_isField )
   {
@@ -1028,7 +1052,12 @@ bool EncApp::encode()
   {
     keepDoing = m_cEncLib.encode( snrCSC, m_recBufList, m_numEncoded );
   }
-
+  
+  //DANIEL BEGIN
+  remove_approx((unsigned long long)beginYNeighborBuffer, (unsigned long long)endYNeighborBuffer);
+  remove_approx((unsigned long long)beginCbNeighborBuffer, (unsigned long long)endCbNeighborBuffer);
+  remove_approx((unsigned long long)beginCrNeighborBuffer, (unsigned long long)endCrNeighborBuffer);
+  //DANIEL END
 #if JVET_O0756_CALCULATE_HDRMETRICS
     m_metricTime = m_cEncLib.getMetricTime();
 #endif

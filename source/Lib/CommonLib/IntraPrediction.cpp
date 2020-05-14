@@ -48,6 +48,11 @@
 
 #include "CommonLib/InterpolationFilter.h"
 
+//DANIEL BEGIN
+#include "CommonLib/approx.h"
+extern double m_intraReadBER;                                      ///< BER for memory readings on intra neighbor buffer
+extern double m_intraWriteBER;                                     ///< BER for memory writings on intra neighbor buffer
+//DANIEL END
 //! \ingroup CommonLib
 //! \{
 
@@ -227,7 +232,15 @@ void IntraPrediction::predIntraAng( const ComponentID compId, PelBuf &piPred, co
 
   const CPelBuf & srcBuf = CPelBuf(getPredictorPtr(compID), srcStride, srcHStride);
   const ClpRng& clpRng(pu.cu->cs->slice->clpRng(compID));
-
+  
+  //DANIEL BEGIN
+  //read ber ON for the prediction operations that will read samples from the neighbor buffer
+  //write ber ON for the first reads of the neighbor samples for the prediction operations
+  //maybe each memory buffer (there are 3 of them, Y,Cb,Cr, unfiltered) should have its on read BER
+  set_read_ber(m_intraReadBER);
+  set_write_ber(m_intraWriteBER);
+  //DANIEL END
+  
   switch (uiDirMode)
   {
     case(PLANAR_IDX): xPredIntraPlanar(srcBuf, piPred); break;
@@ -258,6 +271,11 @@ void IntraPrediction::predIntraAng( const ComponentID compId, PelBuf &piPred, co
       }
     }
   }
+  //DANIEL BEGIN
+  //after prediction operations turn off both bers
+  set_write_ber(0.0);
+  set_read_ber(0.0);
+  //DANIEL END
 }
 
 void IntraPrediction::predIntraChromaLM(const ComponentID compID, PelBuf &piPred, const PredictionUnit &pu, const CompArea& chromaArea, int intraDir)
@@ -785,13 +803,32 @@ void IntraPrediction::initIntraPatternChType(const CodingUnit &cu, const CompAre
 
   setReferenceArrayLengths( area );
 
+  //DANIEL BEGIN
+  //refBufUnfiltered being write in the xFillReferenceSamples function. write_ber ON
+  set_write_ber(m_intraWriteBER);
+  //DANIEL END
+  
   // ----- Step 1: unfiltered reference samples -----
   xFillReferenceSamples( cs.picture->getRecoBuf( area ), refBufUnfiltered, area, cu );
+  
+  //DANIEL BEGIN
+  //refBufUnfiltered being read in the xFilterReferenceSamples. 
+  //It means we need to keep write_ber ON for first readings and
+  //turn read_ber ON for all readings;
+  set_read_ber(m_intraReadBER);
+  //DANIEL END
+  
   // ----- Step 2: filtered reference samples -----
   if( m_ipaParam.refFilterFlag || forceRefFilterFlag )
   {
     xFilterReferenceSamples( refBufUnfiltered, refBufFiltered, area, *cs.sps, cu.firstPU->multiRefIdx );
   }
+  
+  //DANIEL BEGIN
+  //turn OFF both bers after the ending of readings and writings operations
+  set_write_ber(0.0);
+  set_read_ber(0.0);
+  //DANIEL END
 }
 
 void IntraPrediction::initIntraPatternChTypeISP(const CodingUnit& cu, const CompArea& area, PelBuf& recBuf, const bool forceRefFilterFlag)
@@ -806,6 +843,12 @@ void IntraPrediction::initIntraPatternChTypeISP(const CodingUnit& cu, const Comp
   const Position posLT = area;
   bool           isLeftAvail  = (cs.getCURestricted(posLT.offset(-1, 0), cu, CHANNEL_TYPE_LUMA) != NULL) && cs.isDecomp(posLT.offset(-1, 0), CHANNEL_TYPE_LUMA);
   bool           isAboveAvail = (cs.getCURestricted(posLT.offset(0, -1), cu, CHANNEL_TYPE_LUMA) != NULL) && cs.isDecomp(posLT.offset(0, -1), CHANNEL_TYPE_LUMA);
+  
+  //DANIEL BEGIN
+  //refBufUnfiltered being write in the xFillReferenceSamples function. write_ber ON
+  set_write_ber(m_intraWriteBER);
+  //DANIEL END
+  
   // ----- Step 1: unfiltered reference samples -----
   if (cu.blocks[area.compID].x == area.x && cu.blocks[area.compID].y == area.y)
   {
@@ -903,6 +946,14 @@ void IntraPrediction::initIntraPatternChTypeISP(const CodingUnit& cu, const Comp
 
     }
   }
+  
+  //DANIEL BEGIN
+  //refBufUnfiltered being read in the xFilterReferenceSamples. 
+  //It means we need to keep write_ber ON for first readings and
+  //turn read_ber ON for all readings;
+  set_read_ber(m_intraReadBER);
+  //DANIEL END
+  
   // ----- Step 2: filtered reference samples -----
   if (m_ipaParam.refFilterFlag || forceRefFilterFlag)
   {
@@ -910,6 +961,12 @@ void IntraPrediction::initIntraPatternChTypeISP(const CodingUnit& cu, const Comp
     Pel *refBufFiltered   = m_refBuffer[area.compID][PRED_BUF_FILTERED];
     xFilterReferenceSamples(refBufUnfiltered, refBufFiltered, area, *cs.sps, cu.firstPU->multiRefIdx);
   }
+  
+  //DANIEL BEGIN
+  //turn OFF both bers after the ending of readings and writings operations
+  set_write_ber(0.0);
+  set_read_ber(0.0);
+  //DANIEL END
 }
 
 
@@ -1740,6 +1797,13 @@ void IntraPrediction::xGetLMParameters(const PredictionUnit &pu, const Component
   int cntT, cntL;
   cntT = cntL = 0;
   int cnt = 0;
+  
+  //DANIEL BEGIN
+  //set bers ON for readings (or first readings) from cur pointer
+  set_write_ber(m_intraWriteBER);
+  set_read_ber(m_intraReadBER);
+  //DANIEL END
+  
   if (aboveAvailable)
   {
     cntT = std::min(actualTopTemplateSampNum, (1 + aboveIs4) << 1);
@@ -1763,6 +1827,13 @@ void IntraPrediction::xGetLMParameters(const PredictionUnit &pu, const Component
       selectChromaPix[cnt + cntT] = cur[pos];
     }
   }
+  
+  //DANIEL BEGIN
+  //set bers OFF after readings (or first readings) from cur pointer
+  set_write_ber(0.0);
+  set_read_ber(0.0);
+  //DANIEL END
+  
   cnt = cntL + cntT;
 
   if (cnt == 2)
@@ -1839,8 +1910,19 @@ void IntraPrediction::initIntraMip( const PredictionUnit &pu, const CompArea &ar
   Pel *ptrSrc = getPredictorPtr( COMPONENT_Y );
   const int srcStride  = m_refBufferStride[COMPONENT_Y];
   const int srcHStride = 2;
-
+  
+  //DANIEL BEGIN
+  //bers must be ON for readings (or first reading) from pointer ptrSrc in the prepareInputForPred function
+  set_read_ber(m_intraReadBER);
+  set_write_ber(m_intraWriteBER);
+  //DANIEL END
+  
   m_matrixIntraPred.prepareInputForPred( CPelBuf( ptrSrc, srcStride, srcHStride ), area, pu.cu->slice->getSPS()->getBitDepth( CHANNEL_TYPE_LUMA ) );
+  //DANIEL BEGIN
+  //bers OFF after readings (or first reading) from pointer ptrSrc in the prepareInputForPred function
+  set_read_ber(0.0);
+  set_write_ber(0.0);
+  //DANIEL END
 }
 
 void IntraPrediction::predIntraMip( const ComponentID compId, PelBuf &piPred, const PredictionUnit &pu )
