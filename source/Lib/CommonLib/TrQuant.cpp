@@ -794,6 +794,8 @@ void TrQuant::xT( const TransformUnit &tu, const ComponentID &compID, const CPel
     const int      shift_2nd              =  (floorLog2(height))            + TRANSFORM_MATRIX_SHIFT                          + COM16_C806_TRANS_PREC;
     CHECK( shift_1st < 0, "Negative shift" );
     CHECK( shift_2nd < 0, "Negative shift" );
+
+  // TODO transf-approx:  tmp is a pointer for the allocated memory region for matrix transposition 
   TCoeff *tmp = ( TCoeff * ) alloca( width * height * sizeof( TCoeff ) );
 
   fastFwdTrans[trTypeHor][transformWidthIndex ](block,        tmp, shift_1st, height,        0, skipWidth);
@@ -856,6 +858,8 @@ void TrQuant::xIT( const TransformUnit &tu, const ComponentID &compID, const CCo
     const int      shift_2nd              = ( TRANSFORM_MATRIX_SHIFT + maxLog2TrDynamicRange - 1 ) - bitDepth + COM16_C806_TRANS_PREC;
     CHECK( shift_1st < 0, "Negative shift" );
     CHECK( shift_2nd < 0, "Negative shift" );
+    
+    // TODO transf-approx:  tmp is a pointer for the allocated memory region for matrix transposition
     TCoeff *tmp = ( TCoeff * ) alloca( width * height * sizeof( TCoeff ) );
   fastInvTrans[trTypeVer][transformHeightIndex](pCoeff.buf, tmp, shift_1st, width, skipWidth, skipHeight, clipMinimum, clipMaximum);
   fastInvTrans[trTypeHor][transformWidthIndex] (tmp,      block, shift_2nd, height,         0, skipWidth, clipMinimum, clipMaximum);
