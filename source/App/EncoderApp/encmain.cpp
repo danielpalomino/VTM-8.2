@@ -44,6 +44,8 @@
 #include "EncApp.h"
 #include "Utilities/program_options_lite.h"
 
+#include "../../Lib/CommonLib/DebugTransf.h"
+
 //! \ingroup EncoderApp
 //! \{
 
@@ -83,6 +85,10 @@ static void printMacroSettings()
 
 int main(int argc, char* argv[])
 {
+// transf-approx: debug file for transforms dynamic understanding
+
+  DebugTransf::init("transf-debug.txt");
+  
   // print information
   fprintf( stdout, "\n" );
   fprintf( stdout, "VVCSoftware: VTM Encoder Version %s ", VTM_VERSION );
@@ -317,6 +323,7 @@ int main(int argc, char* argv[])
          encTime / 1000.0);
 #endif
 
+  DebugTransf::finalize();
   return 0;
 }
 

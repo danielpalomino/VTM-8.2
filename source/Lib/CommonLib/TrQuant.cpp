@@ -53,6 +53,8 @@
 #include "QuantRDOQ.h"
 #include "DepQuant.h"
 
+#include "DebugTransf.h"
+
 #if RExt__DECODER_DEBUG_TOOL_STATISTICS
 #include "CommonLib/CodingStatistics.h"
 #endif
@@ -926,6 +928,9 @@ void TrQuant::transformNxN( TransformUnit& tu, const ComponentID& compID, const 
   const CPelBuf  resiBuf    = cs.getResiBuf(rect);
 
   CHECK( cs.sps->getMaxTbSize() < width, "Unsupported transformation size" );
+
+  // transf-approx
+  DebugTransf::debug("Teste!");
 
   int pos = 0;
   std::vector<TrCost> trCosts;
