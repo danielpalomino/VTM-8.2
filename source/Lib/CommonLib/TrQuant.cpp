@@ -38,6 +38,10 @@
 #include "TrQuant.h"
 #include "TrQuant_EMT.h"
 
+// transf-approx
+// Arthur
+#include "approx.h"
+
 #include "UnitTools.h"
 #include "ContextModelling.h"
 #include "CodingStructure.h"
@@ -806,14 +810,29 @@ void TrQuant::xT( const TransformUnit &tu, const ComponentID &compID, const CPel
   TCoeff *tmp = ( TCoeff * ) alloca( width * height * sizeof( TCoeff ) );
 
   // transf-approx: include "approx.h"
-  // transf-approx: call here the add_approx function
+  TCoeff *beginBuffer, *endBuffer;
+  
+  int bufferSize = ( width * height * sizeof( TCoeff ) );
+
+  beginBuffer = tmp;
+  endBuffer = beginBuffer + bufferSize;
+
   // transf-approx: call here set_read_ber e set_write_ber (DebugTransf::m_TransfReadBER and DebugTransf::m_TransfWriteBER)
+  set_read_ber(DebugTransf::m_TransfReadBER);
+  set_write_ber(DebugTransf::m_TransfWriteBER);
+
+  // transf-approx: call here the add_approx function
+  add_approx((unsigned long long)beginBuffer, (unsigned long long)endBuffer); 
 
   fastFwdTrans[trTypeHor][transformWidthIndex ](block,        tmp, shift_1st, height,        0, skipWidth);
   fastFwdTrans[trTypeVer][transformHeightIndex](tmp, dstCoeff.buf, shift_2nd, width, skipWidth, skipHeight);
 
   // transf-approx: call here the remove_approx function
+  remove_approx((unsigned long long)beginBuffer, (unsigned long long)endBuffer);
+
   // transf-approx: call here set_read_ber e set_write_ber (0.0 and 0.0)
+  set_read_ber(0.0);
+  set_write_ber(0.0);
 
   }
   else if( height == 1 ) //1-D horizontal transform
