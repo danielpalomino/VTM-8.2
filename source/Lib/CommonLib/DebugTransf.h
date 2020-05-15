@@ -7,8 +7,11 @@
 class DebugTransf {
     private:
         static std::fstream fp;
+        
 
     public:
+
+        static double m_TransfReadBER, m_TransfWriteBER;
 
         static void init(std::string fileName);
 

@@ -53,6 +53,7 @@
 #include "QuantRDOQ.h"
 #include "DepQuant.h"
 
+#include "../../App/EncoderApp/EncAppCfg.h"
 #include "DebugTransf.h"
 
 #if RExt__DECODER_DEBUG_TOOL_STATISTICS
@@ -797,7 +798,12 @@ void TrQuant::xT( const TransformUnit &tu, const ComponentID &compID, const CPel
     CHECK( shift_1st < 0, "Negative shift" );
     CHECK( shift_2nd < 0, "Negative shift" );
 
-  // TODO transf-approx:  tmp is a pointer for the allocated memory region for matrix transposition 
+  // TODO transf-approx:  tmp is a pointer for the allocated memory region for matrix transposition
+  std::stringstream ss;
+  ss << std::setprecision(2) << DebugTransf::m_TransfReadBER << " " << DebugTransf::m_TransfWriteBER;
+
+  DebugTransf::debug(ss.str());
+
   TCoeff *tmp = ( TCoeff * ) alloca( width * height * sizeof( TCoeff ) );
 
   fastFwdTrans[trTypeHor][transformWidthIndex ](block,        tmp, shift_1st, height,        0, skipWidth);
@@ -930,7 +936,6 @@ void TrQuant::transformNxN( TransformUnit& tu, const ComponentID& compID, const 
   CHECK( cs.sps->getMaxTbSize() < width, "Unsupported transformation size" );
 
   // transf-approx
-  DebugTransf::debug("Teste!");
 
   int pos = 0;
   std::vector<TrCost> trCosts;

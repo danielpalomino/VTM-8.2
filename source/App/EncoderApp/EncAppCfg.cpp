@@ -50,6 +50,8 @@
 
 #include "CommonLib/dtrace_next.h"
 
+#include "../../Lib/CommonLib/DebugTransf.h"
+
 #define MACRO_TO_STRING_HELPER(val) #val
 #define MACRO_TO_STRING(val) MACRO_TO_STRING_HELPER(val)
 
@@ -768,6 +770,8 @@ bool EncAppCfg::parseCfg( int argc, char* argv[] )
   ("SummaryPicFilenameBase",                          m_summaryPicFilenameBase,                      string(), "Base filename to use for producing summary picture output files. The actual filenames used will have I.txt, P.txt and B.txt appended. If empty, do not produce a file.")
   ("SummaryVerboseness",                              m_summaryVerboseness,                                0u, "Specifies the level of the verboseness of the text output")
   ("Verbosity,v",                                     m_verbosity,                               (int)VERBOSE, "Specifies the level of the verboseness")
+  ("TransformsReadBER,-trber",                              DebugTransf::m_TransfReadBER,               (double)0.0, "Bit error rating for transforms transpose buffer read accesses")
+  ("TransformsWriteBER,-twber",                             DebugTransf::m_TransfWriteBER,              (double)0.0, "Bit error rating for transforms transpose buffer write accesses")
 
 #if JVET_O0756_CONFIG_HDRMETRICS || JVET_O0756_CALCULATE_HDRMETRICS
   ( "WhitePointDeltaE1",                              m_whitePointDeltaE[0],                            100.0, "1st reference white point value")
