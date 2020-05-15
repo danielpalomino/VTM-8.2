@@ -2,14 +2,14 @@
 
 std::fstream DebugTransf::fp;
 
-static void init(std::string fileName) {
+void DebugTransf::init(std::string fileName) {
     fp.open(fileName.c_str(), std::fstream::out);
 }
 
-static void debug(std::string text) {
+void DebugTransf::debug(std::string text) {
     fp << text << std::endl;
 }
 
-static void finalize() {
+void DebugTransf::finalize() {
     fp.close();
 }

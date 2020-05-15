@@ -5,21 +5,16 @@
 #include <string>
 
 class DebugTransf {
-    
-    public:
+    private:
         static std::fstream fp;
 
-        static void init(std::string fileName) {
-            fp.open(fileName.c_str(), std::fstream::out);
-        }
+    public:
 
-        static void debug(std::string text) {
-            fp << text << std::endl;
-        }
+        static void init(std::string fileName);
 
-        static void finalize() {
-            fp.close();
-        }
+        static void debug(std::string text);
+
+        static void finalize();
 
 };
 
