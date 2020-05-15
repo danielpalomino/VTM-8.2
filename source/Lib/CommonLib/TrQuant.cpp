@@ -801,13 +801,20 @@ void TrQuant::xT( const TransformUnit &tu, const ComponentID &compID, const CPel
   // TODO transf-approx:  tmp is a pointer for the allocated memory region for matrix transposition
   std::stringstream ss;
   ss << std::setprecision(2) << DebugTransf::m_TransfReadBER << " " << DebugTransf::m_TransfWriteBER;
-
   DebugTransf::debug(ss.str());
 
   TCoeff *tmp = ( TCoeff * ) alloca( width * height * sizeof( TCoeff ) );
 
+  // transf-approx: include "approx.h"
+  // transf-approx: call here the add_approx function
+  // transf-approx: call here set_read_ber e set_write_ber (DebugTransf::m_TransfReadBER and DebugTransf::m_TransfWriteBER)
+
   fastFwdTrans[trTypeHor][transformWidthIndex ](block,        tmp, shift_1st, height,        0, skipWidth);
   fastFwdTrans[trTypeVer][transformHeightIndex](tmp, dstCoeff.buf, shift_2nd, width, skipWidth, skipHeight);
+
+  // transf-approx: call here the remove_approx function
+  // transf-approx: call here set_read_ber e set_write_ber (0.0 and 0.0)
+
   }
   else if( height == 1 ) //1-D horizontal transform
   {
