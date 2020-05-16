@@ -802,33 +802,17 @@ void TrQuant::xT( const TransformUnit &tu, const ComponentID &compID, const CPel
     CHECK( shift_1st < 0, "Negative shift" );
     CHECK( shift_2nd < 0, "Negative shift" );
 
-  // TODO transf-approx:  tmp is a pointer for the allocated memory region for matrix transposition
-  std::stringstream ss;
-  ss << std::setprecision(2) << DebugTransf::m_TransfReadBER << " " << DebugTransf::m_TransfWriteBER;
-  DebugTransf::debug(ss.str());
-
-  TCoeff *tmp = ( TCoeff * ) alloca( width * height * sizeof( TCoeff ) );
-
-  // transf-approx: include "approx.h"
-  TCoeff *beginBuffer, *endBuffer;
-  
-  int bufferSize = ( width * height * sizeof( TCoeff ) );
-
-  beginBuffer = tmp;
-  endBuffer = beginBuffer + bufferSize;
+  // transf-approx:  tmp is a pointer for the allocated memory region for matrix transposition --> replaced by DebugTransf::transfBuffer
+  /*
+    TCoeff *tmp = ( TCoeff * ) alloca( width * height * sizeof( TCoeff ) );
+  */
 
   // transf-approx: call here set_read_ber e set_write_ber (DebugTransf::m_TransfReadBER and DebugTransf::m_TransfWriteBER)
   set_read_ber(DebugTransf::m_TransfReadBER);
   set_write_ber(DebugTransf::m_TransfWriteBER);
 
-  // transf-approx: call here the add_approx function
-  add_approx((unsigned long long)beginBuffer, (unsigned long long)endBuffer); 
-
-  fastFwdTrans[trTypeHor][transformWidthIndex ](block,        tmp, shift_1st, height,        0, skipWidth);
-  fastFwdTrans[trTypeVer][transformHeightIndex](tmp, dstCoeff.buf, shift_2nd, width, skipWidth, skipHeight);
-
-  // transf-approx: call here the remove_approx function
-  remove_approx((unsigned long long)beginBuffer, (unsigned long long)endBuffer);
+  fastFwdTrans[trTypeHor][transformWidthIndex ](block, DebugTransf::transfBuffer, shift_1st, height,        0, skipWidth);
+  fastFwdTrans[trTypeVer][transformHeightIndex](DebugTransf::transfBuffer, dstCoeff.buf, shift_2nd, width, skipWidth, skipHeight);
 
   // transf-approx: call here set_read_ber e set_write_ber (0.0 and 0.0)
   set_read_ber(0.0);
@@ -893,10 +877,22 @@ void TrQuant::xIT( const TransformUnit &tu, const ComponentID &compID, const CCo
     CHECK( shift_1st < 0, "Negative shift" );
     CHECK( shift_2nd < 0, "Negative shift" );
     
-    // TODO transf-approx:  tmp is a pointer for the allocated memory region for matrix transposition
+  // transf-approx:  tmp is a pointer for the allocated memory region for matrix transposition --> replaced by DebugTransf::transfBuffer
+  /*
     TCoeff *tmp = ( TCoeff * ) alloca( width * height * sizeof( TCoeff ) );
-  fastInvTrans[trTypeVer][transformHeightIndex](pCoeff.buf, tmp, shift_1st, width, skipWidth, skipHeight, clipMinimum, clipMaximum);
-  fastInvTrans[trTypeHor][transformWidthIndex] (tmp,      block, shift_2nd, height,         0, skipWidth, clipMinimum, clipMaximum);
+  */
+
+  // transf-approx: call here set_read_ber e set_write_ber (DebugTransf::m_TransfReadBER and DebugTransf::m_TransfWriteBER)
+  set_read_ber(DebugTransf::m_TransfReadBER);
+  set_write_ber(DebugTransf::m_TransfWriteBER);
+
+  fastInvTrans[trTypeVer][transformHeightIndex](pCoeff.buf, DebugTransf::transfBuffer, shift_1st, width, skipWidth, skipHeight, clipMinimum, clipMaximum);
+  fastInvTrans[trTypeHor][transformWidthIndex] (DebugTransf::transfBuffer,      block, shift_2nd, height,         0, skipWidth, clipMinimum, clipMaximum);
+
+  // transf-approx: call here set_read_ber e set_write_ber (0.0 and 0.0)
+  set_read_ber(0.0);
+  set_write_ber(0.0);
+
   }
   else if( width == 1 ) //1-D vertical transform
   {
