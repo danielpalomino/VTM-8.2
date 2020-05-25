@@ -90,7 +90,7 @@ static void printMacroSettings()
 int main(int argc, char* argv[])
 {
 // transf-approx: debug file for transforms dynamic understanding; initializing write and read bers as 0.0
-  DebugTransf::init("transf-debug.txt");
+  //DebugTransf::init("transf-debug.txt");
   set_read_ber(0.0);
   set_write_ber(0.0);
   

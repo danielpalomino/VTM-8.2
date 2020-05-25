@@ -18,7 +18,6 @@ class DebugTransf {
     public:
 
         static double m_TransfReadBER, m_TransfWriteBER;
-        static TCoeff *transfBuffer;
 
         static void init(std::string fileName);
 
